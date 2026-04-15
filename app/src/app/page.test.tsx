@@ -5,11 +5,50 @@ import { beforeEach } from "vitest";
 import { createElement } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { getInitialPages, type PageItem } from "@/features/pages/pages";
 import HomePage from "./page";
 import { resolveActiveSectionId } from "./section-navigation";
 
+let serverPages: PageItem[] = [];
+
+function clonePages(pages: PageItem[]): PageItem[] {
+  return pages.map((page) => ({
+    ...page,
+    blocks: page.blocks.map((block) => ({ ...block })),
+  }));
+}
+
+function createJsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
 beforeEach(() => {
   localStorage.clear();
+  serverPages = clonePages(getInitialPages());
+
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input), "http://localhost");
+      const method = init?.method ?? "GET";
+
+      if (url.pathname === "/api/pages" && method === "GET") {
+        return createJsonResponse(serverPages);
+      }
+
+      if (url.pathname === "/api/pages/page-1" && method === "DELETE") {
+        serverPages = serverPages.filter((page) => page.id !== "page-1");
+        return createJsonResponse({ ok: true });
+      }
+
+      return createJsonResponse(null, 404);
+    }),
+  );
 });
 
 describe("HomePage", () => {

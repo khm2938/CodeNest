@@ -7,7 +7,7 @@ import { SectionCard } from "@/components/section-card";
 import { PageWorkspace } from "@/features/pages/page-workspace";
 import { getInitialPages, type PageItem } from "@/features/pages/pages";
 import { promptGroups } from "@/features/prompt-library/prompt-library";
-import { createLocalStoragePageRepository } from "@/features/storage/local-storage-page-repository";
+import { createApiPageRepository } from "@/features/storage/api-page-repository";
 import type { PageRepository } from "@/features/storage/page-repository";
 import { resolveActiveSectionId } from "./section-navigation";
 
@@ -19,7 +19,7 @@ const settingsItems = [
 
 export default function HomePage() {
   const [initialPages] = useState<PageItem[]>(() => getInitialPages());
-  const [repository] = useState<PageRepository>(() => createLocalStoragePageRepository(initialPages));
+  const [repository] = useState<PageRepository>(() => createApiPageRepository());
   const [pages, setPages] = useState<PageItem[]>(() => initialPages);
   const [selectedPageId, setSelectedPageId] = useState<string>(pages[0]?.id ?? "");
   const [activeSectionId, setActiveSectionId] = useState<SidebarSectionId>("dashboard");
