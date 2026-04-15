@@ -1,12 +1,200 @@
-import type { PageItem } from "./pages";
+import type { Block, PageItem } from "./pages";
 
 type PageWorkspaceProps = {
   pages: PageItem[];
   selectedPageId: string;
   onCreatePage: () => void;
   onSelectPage: (pageId: string) => void;
-  onUpdatePage: (pageId: string, updates: Partial<Pick<PageItem, "title" | "content">>) => void;
+  onUpdatePage: (pageId: string, updates: Partial<Pick<PageItem, "title" | "blocks">>) => void;
 };
+
+function createTextBlock(): Block {
+  return {
+    id: `block-${crypto.randomUUID()}`,
+    type: "text",
+    text: "",
+  };
+}
+
+function updateBlockAtIndex(blocks: Block[], index: number, nextBlock: Block): Block[] {
+  return blocks.map((block, currentIndex) => (currentIndex === index ? nextBlock : block));
+}
+
+function getBlockPreview(block: Block, index: number) {
+  const blockNumber = index + 1;
+
+  switch (block.type) {
+    case "heading":
+      return (
+        <article key={block.id} className="page-block-preview">
+          <p className="page-block-preview__kicker">제목 블록 {blockNumber}</p>
+          <h4>{block.text || "제목 없음"}</h4>
+        </article>
+      );
+    case "checklist":
+      return (
+        <article key={block.id} className="page-block-preview">
+          <p className="page-block-preview__kicker">체크리스트 블록 {blockNumber}</p>
+          <label className="page-block-preview__check">
+            <input type="checkbox" checked={Boolean(block.checked)} readOnly />
+            <span>{block.text || "할 일을 적어보세요."}</span>
+          </label>
+        </article>
+      );
+    case "code":
+      return (
+        <article key={block.id} className="page-block-preview">
+          <p className="page-block-preview__kicker">코드 블록 {blockNumber}</p>
+          <span className="page-block-preview__language">{block.language || "언어 없음"}</span>
+          <pre>
+            <code>{block.text || "코드를 입력하면 여기에 보입니다."}</code>
+          </pre>
+        </article>
+      );
+    case "text":
+    default:
+      return (
+        <article key={block.id} className="page-block-preview">
+          <p className="page-block-preview__kicker">텍스트 블록 {blockNumber}</p>
+          <p>{block.text || "내용을 입력하면 여기에 바로 보입니다."}</p>
+        </article>
+      );
+  }
+}
+
+function getBlockEditor(
+  block: Block,
+  index: number,
+  onChange: (nextBlock: Block) => void,
+  onDelete: () => void,
+) {
+  const blockNumber = index + 1;
+  const blockHeader =
+    block.type === "heading"
+      ? "제목 블록"
+      : block.type === "checklist"
+        ? "체크리스트 블록"
+        : block.type === "code"
+          ? "코드 블록"
+          : "텍스트 블록";
+
+  return (
+    <article key={block.id} className="page-block-editor">
+      <div className="page-block-editor__header">
+        <div>
+          <p className="page-block-editor__kicker">{blockHeader}</p>
+          <h4>{block.type === "heading" ? "제목" : block.type === "checklist" ? "할 일" : block.type === "code" ? "코드" : "본문"}</h4>
+        </div>
+        <button type="button" onClick={onDelete}>
+          블록 삭제
+        </button>
+      </div>
+
+      {block.type === "heading" ? (
+        <label className="page-editor__field">
+          <span>제목 내용</span>
+          <input
+            type="text"
+            aria-label={`제목 블록 ${blockNumber}`}
+            value={block.text}
+            onChange={(event) =>
+              onChange({
+                ...block,
+                text: event.target.value,
+              })
+            }
+          />
+        </label>
+      ) : null}
+
+      {block.type === "text" ? (
+        <label className="page-editor__field">
+          <span>본문 내용</span>
+          <textarea
+            aria-label={`텍스트 블록 ${blockNumber}`}
+            value={block.text}
+            onChange={(event) =>
+              onChange({
+                ...block,
+                text: event.target.value,
+              })
+            }
+            rows={4}
+          />
+        </label>
+      ) : null}
+
+      {block.type === "checklist" ? (
+        <div className="page-block-editor__checklist">
+          <label className="page-block-editor__check">
+            <input
+              type="checkbox"
+              aria-label="체크리스트 완료"
+              checked={Boolean(block.checked)}
+              onChange={(event) =>
+                onChange({
+                  ...block,
+                  checked: event.target.checked,
+                })
+              }
+            />
+            <span>완료</span>
+          </label>
+
+          <label className="page-editor__field">
+            <span>체크리스트 내용</span>
+            <input
+              type="text"
+              aria-label={`체크리스트 블록 ${blockNumber}`}
+              value={block.text}
+              onChange={(event) =>
+                onChange({
+                  ...block,
+                  text: event.target.value,
+                })
+              }
+            />
+          </label>
+        </div>
+      ) : null}
+
+      {block.type === "code" ? (
+        <div className="page-block-editor__code">
+          <label className="page-editor__field">
+            <span>코드 언어</span>
+            <input
+              type="text"
+              aria-label={`코드 언어 ${blockNumber}`}
+              value={block.language ?? ""}
+              placeholder="ts"
+              onChange={(event) =>
+                onChange({
+                  ...block,
+                  language: event.target.value,
+                })
+              }
+            />
+          </label>
+
+          <label className="page-editor__field">
+            <span>코드 내용</span>
+            <textarea
+              aria-label={`코드 블록 ${blockNumber}`}
+              value={block.text}
+              onChange={(event) =>
+                onChange({
+                  ...block,
+                  text: event.target.value,
+                })
+              }
+              rows={6}
+            />
+          </label>
+        </div>
+      ) : null}
+    </article>
+  );
+}
 
 export function PageWorkspace({
   pages,
@@ -17,6 +205,44 @@ export function PageWorkspace({
 }: PageWorkspaceProps) {
   const currentPage = pages.find((page) => page.id === selectedPageId);
 
+  const updateCurrentPage = (updates: Partial<Pick<PageItem, "title" | "blocks">>) => {
+    if (!currentPage) {
+      return;
+    }
+
+    onUpdatePage(currentPage.id, updates);
+  };
+
+  const addTextBlock = () => {
+    if (!currentPage) {
+      return;
+    }
+
+    updateCurrentPage({
+      blocks: [...currentPage.blocks, createTextBlock()],
+    });
+  };
+
+  const changeBlock = (index: number, nextBlock: Block) => {
+    if (!currentPage) {
+      return;
+    }
+
+    updateCurrentPage({
+      blocks: updateBlockAtIndex(currentPage.blocks, index, nextBlock),
+    });
+  };
+
+  const deleteBlock = (index: number) => {
+    if (!currentPage) {
+      return;
+    }
+
+    updateCurrentPage({
+      blocks: currentPage.blocks.filter((_, currentIndex) => currentIndex !== index),
+    });
+  };
+
   return (
     <section className="page-workspace">
       <div className="page-workspace__toolbar">
@@ -24,7 +250,7 @@ export function PageWorkspace({
           <p className="page-workspace__kicker">페이지</p>
           <h2>내 작업 공간</h2>
           <p className="page-workspace__lede">
-            페이지 목록에서 고르고, 오른쪽에서 바로 제목과 본문을 수정합니다.
+            페이지 목록에서 고르고, 오른쪽에서 바로 제목과 블록을 수정합니다.
           </p>
         </div>
         <button type="button" className="page-workspace__button" onClick={onCreatePage}>
@@ -63,25 +289,56 @@ export function PageWorkspace({
                 <input
                   type="text"
                   value={currentPage.title}
-                  onChange={(event) => onUpdatePage(currentPage.id, { title: event.target.value })}
+                  onChange={(event) =>
+                    updateCurrentPage({
+                      title: event.target.value,
+                    })
+                  }
                   aria-label="페이지 제목"
                 />
               </label>
 
-              <label className="page-editor__field page-editor__field--body">
-                <span>페이지 본문</span>
-                <textarea
-                  value={currentPage.content}
-                  onChange={(event) => onUpdatePage(currentPage.id, { content: event.target.value })}
-                  aria-label="페이지 본문"
-                  rows={10}
-                />
-              </label>
+              <section className="page-block-editor__section" aria-label="블록 편집기">
+                <div className="page-block-editor__section-header">
+                  <div>
+                    <p className="page-preview__kicker">블록</p>
+                    <h3>본문 블록</h3>
+                  </div>
+                  <button type="button" className="page-workspace__button" onClick={addTextBlock}>
+                    텍스트 블록 추가
+                  </button>
+                </div>
+
+                <div className="page-block-editor__list">
+                  {currentPage.blocks.length > 0 ? (
+                    currentPage.blocks.map((block, index) =>
+                      getBlockEditor(
+                        block,
+                        index,
+                        (nextBlock) => changeBlock(index, nextBlock),
+                        () => deleteBlock(index),
+                      ),
+                    )
+                  ) : (
+                    <div className="page-block-editor__empty">
+                      <p>아직 블록이 없습니다.</p>
+                      <p>텍스트 블록을 추가해서 시작해 보세요.</p>
+                    </div>
+                  )}
+                </div>
+              </section>
 
               <div className="page-editor__preview">
                 <span>실시간 미리보기</span>
                 <h3>{currentPage.title || "제목 없음"}</h3>
-                <p>{currentPage.content || "내용을 입력하면 여기에 바로 보입니다."}</p>
+
+                {currentPage.blocks.length > 0 ? (
+                  <div className="page-editor__preview-blocks">
+                    {currentPage.blocks.map((block, index) => getBlockPreview(block, index))}
+                  </div>
+                ) : (
+                  <p>블록을 추가하면 여기에 바로 보입니다.</p>
+                )}
               </div>
             </>
           ) : (
