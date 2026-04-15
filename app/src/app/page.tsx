@@ -7,7 +7,8 @@ import { SectionCard } from "@/components/section-card";
 import { PageWorkspace } from "@/features/pages/page-workspace";
 import { getInitialPages, type PageItem } from "@/features/pages/pages";
 import { promptGroups } from "@/features/prompt-library/prompt-library";
-import { createInMemoryPageRepository, type PageRepository } from "@/features/storage/page-repository";
+import { createLocalStoragePageRepository } from "@/features/storage/local-storage-page-repository";
+import type { PageRepository } from "@/features/storage/page-repository";
 import { resolveActiveSectionId } from "./section-navigation";
 
 const settingsItems = [
@@ -18,10 +19,24 @@ const settingsItems = [
 
 export default function HomePage() {
   const [initialPages] = useState<PageItem[]>(() => getInitialPages());
-  const [repository] = useState<PageRepository>(() => createInMemoryPageRepository(initialPages));
+  const [repository] = useState<PageRepository>(() => createLocalStoragePageRepository(initialPages));
   const [pages, setPages] = useState<PageItem[]>(() => initialPages);
   const [selectedPageId, setSelectedPageId] = useState<string>(pages[0]?.id ?? "");
   const [activeSectionId, setActiveSectionId] = useState<SidebarSectionId>("dashboard");
+
+  useEffect(() => {
+    const loadPages = async () => {
+      const nextPages = await repository.listPages();
+      setPages(nextPages);
+      setSelectedPageId((currentSelectedPageId) =>
+        nextPages.some((page) => page.id === currentSelectedPageId)
+          ? currentSelectedPageId
+          : nextPages[0]?.id ?? "",
+      );
+    };
+
+    void loadPages();
+  }, [repository]);
 
   useEffect(() => {
     const syncActiveSection = () => {
@@ -46,6 +61,18 @@ export default function HomePage() {
       window.removeEventListener("resize", syncActiveSection);
     };
   }, []);
+
+  useEffect(() => {
+    if (pages.length === 0) {
+      return;
+    }
+
+    if (pages.some((page) => page.id === selectedPageId)) {
+      return;
+    }
+
+    setSelectedPageId(pages[0]?.id ?? "");
+  }, [pages, selectedPageId]);
 
   const syncPages = async () => {
     const nextPages = await repository.listPages();
