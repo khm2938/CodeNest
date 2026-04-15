@@ -122,6 +122,56 @@ interface PageRepository {
 - 페이지 삭제도 나중에 복구 가능성을 위해 soft delete를 기본으로 둔다
 - 새 페이지는 기본 블록 1개와 함께 생성한다
 
+## 스키마 버전과 마이그레이션
+
+### 최소 버전 필드
+
+- `page-index`와 각 페이지 payload에 `schemaVersion: 1`을 둔다
+- 저장소는 읽을 때 버전을 확인하고, 현재 버전과 다르면 변환 함수를 거친다
+- 저장할 때는 항상 최신 버전 형식으로 기록한다
+
+### 마이그레이션 규칙
+
+- 버전이 같은 데이터는 그대로 읽는다
+- 버전이 낮으면 현재 형식으로 업그레이드한다
+- 버전이 높은 데이터는 안전하게 거부하거나, 읽지 못한 필드를 무시한 채 최소 복원만 시도한다
+- 마이그레이션 로직은 저장소 구현체가 아니라 공용 유틸에 둔다
+
+### 버전 업 시나리오
+
+- 새 필드 추가
+- 페이지/블록 구조 변경
+- 인덱스 구조 변경
+- 키 네이밍 변경
+
+이런 변경이 생기면 `schemaVersion`이 올라가고, 이전 버전은 마이그레이션 경로를 통해 복원한다.
+
+## 재사용 경계
+
+반복해서 쓰일 가능성이 큰 로직은 저장소 구현체 안에 두지 않고 공용 유틸로 분리한다.
+
+### 분리할 대상
+
+- localStorage 키 생성
+- 페이지 인덱스 읽기/쓰기
+- 페이지 payload 직렬화/역직렬화
+- 블록 순서 재배열
+- schemaVersion 판별과 마이그레이션
+- 복사본 생성과 불변성 유지
+
+### 예상 파일 경계
+
+- `app/src/features/storage/storage-keys.ts`
+  - key prefix, page key, index key 생성
+- `app/src/features/storage/storage-serialization.ts`
+  - JSON 읽기/쓰기, schemaVersion 처리, 마이그레이션
+- `app/src/features/storage/page-index.ts`
+  - 목록 순서, 선택 페이지, 인덱스 갱신
+- `app/src/features/storage/page-clone.ts`
+  - page/block 복사
+- `app/src/features/storage/page-order.ts`
+  - 블록 재정렬, 페이지 순서 정렬
+
 ## 전환 전략
 
 ### 1단계: 저장소 인터페이스 추가
@@ -139,6 +189,13 @@ interface PageRepository {
 ### 4단계: DB 연결
 
 서버 내부에서 pages/blocks 테이블을 사용한다.
+
+## 재사용 원칙
+
+- 페이지 저장과 인덱스 관리는 한 번만 구현하고 여러 저장소 구현체가 공유한다
+- UI 컴포넌트는 저장소 구현 세부를 알지 못하게 한다
+- 같은 순서 계산이나 복사 로직은 중복 작성하지 않는다
+- 나중에 서버/DB로 이동해도 공용 유틸을 그대로 재사용할 수 있게 한다
 
 ## 예상 파일 경계
 
