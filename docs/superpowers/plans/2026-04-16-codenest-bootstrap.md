@@ -1,8 +1,8 @@
-# Notion Clone Bootstrap Implementation Plan
+# CodeNest Bootstrap Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Create a dockerized project scaffold for the Notion-style app and add a reusable prompt library organized by task type.
+**Goal:** Create a dockerized project scaffold for the CodeNest app and add a reusable prompt library organized by task type.
 
 **Architecture:** Use a single development container as the initial project shell. Keep the application source intentionally thin for now, while separating stable prompt templates from mutable project state so future tasks can load only what they need. The prompt library is organized by workflow stage: core, planning, and execution.
 
@@ -13,12 +13,12 @@
 ### Task 1: Create the project root scaffold
 
 **Files:**
-- Create: `notion-clone/Dockerfile`
-- Create: `notion-clone/docker-compose.yml`
-- Create: `notion-clone/.dockerignore`
-- Create: `notion-clone/.gitignore`
-- Create: `notion-clone/README.md`
-- Create: `notion-clone/app/README.md`
+- Create: `CodeNest/Dockerfile`
+- Create: `CodeNest/docker-compose.yml`
+- Create: `CodeNest/.dockerignore`
+- Create: `CodeNest/.gitignore`
+- Create: `CodeNest/README.md`
+- Create: `CodeNest/app/README.md`
 
 - [ ] **Step 1: Add the docker runtime files**
 
@@ -61,7 +61,7 @@ node_modules
 ```
 
 ```markdown
-# Notion Clone
+# CodeNest
 
 This repository starts as a dockerized workspace for a Notion-style productivity app.
 
@@ -89,7 +89,7 @@ Application code will live here once the first product slice is implemented.
 Run:
 
 ```powershell
-Get-ChildItem -Recurse notion-clone
+Get-ChildItem -Recurse CodeNest
 ```
 
 Expected:
@@ -99,29 +99,29 @@ Expected:
 - [ ] **Step 5: Commit**
 
 ```bash
-git add notion-clone
-git commit -m "chore: add notion clone scaffold"
+git add CodeNest
+git commit -m "chore: add CodeNest scaffold"
 ```
 
 ### Task 2: Add the prompt library
 
 **Files:**
-- Create: `notion-clone/prompts/00-index.md`
-- Create: `notion-clone/prompts/10-core/11-project-master.md`
-- Create: `notion-clone/prompts/10-core/12-feature-design.md`
-- Create: `notion-clone/prompts/10-core/13-feature-breakdown.md`
-- Create: `notion-clone/prompts/10-core/14-priority.md`
-- Create: `notion-clone/prompts/20-planning/21-user-flow.md`
-- Create: `notion-clone/prompts/20-planning/22-component-breakdown.md`
-- Create: `notion-clone/prompts/20-planning/23-data-model.md`
-- Create: `notion-clone/prompts/20-planning/24-contracts.md`
-- Create: `notion-clone/prompts/20-planning/25-testing.md`
-- Create: `notion-clone/prompts/20-planning/26-mvp-cut.md`
-- Create: `notion-clone/prompts/30-execution/31-implementation.md`
-- Create: `notion-clone/prompts/30-execution/32-review-qa.md`
-- Create: `notion-clone/prompts/30-execution/33-documentation.md`
-- Create: `notion-clone/prompts/30-execution/34-architecture-comparison.md`
-- Create: `notion-clone/prompts/30-execution/35-expansion-decision.md`
+- Create: `CodeNest/prompts/00-index.md`
+- Create: `CodeNest/prompts/10-core/11-project-master.md`
+- Create: `CodeNest/prompts/10-core/12-feature-design.md`
+- Create: `CodeNest/prompts/10-core/13-feature-breakdown.md`
+- Create: `CodeNest/prompts/10-core/14-priority.md`
+- Create: `CodeNest/prompts/20-planning/21-user-flow.md`
+- Create: `CodeNest/prompts/20-planning/22-component-breakdown.md`
+- Create: `CodeNest/prompts/20-planning/23-data-model.md`
+- Create: `CodeNest/prompts/20-planning/24-contracts.md`
+- Create: `CodeNest/prompts/20-planning/25-testing.md`
+- Create: `CodeNest/prompts/20-planning/26-mvp-cut.md`
+- Create: `CodeNest/prompts/30-execution/31-implementation.md`
+- Create: `CodeNest/prompts/30-execution/32-review-qa.md`
+- Create: `CodeNest/prompts/30-execution/33-documentation.md`
+- Create: `CodeNest/prompts/30-execution/34-architecture-comparison.md`
+- Create: `CodeNest/prompts/30-execution/35-expansion-decision.md`
 
 - [ ] **Step 1: Add the index and core templates**
 
@@ -165,7 +165,7 @@ Write the markdown bodies into the files listed above. Use the approved prompt s
 Run:
 
 ```powershell
-Get-ChildItem -Recurse notion-clone\prompts
+Get-ChildItem -Recurse CodeNest\prompts
 ```
 
 Expected:
@@ -175,9 +175,9 @@ Expected:
 ### Task 3: Add mutable project state files
 
 **Files:**
-- Create: `notion-clone/state/current-state.md`
-- Create: `notion-clone/state/decisions.md`
-- Create: `notion-clone/state/backlog.md`
+- Create: `CodeNest/state/current-state.md`
+- Create: `CodeNest/state/decisions.md`
+- Create: `CodeNest/state/backlog.md`
 
 - [ ] **Step 1: Add the state files**
 
@@ -209,7 +209,7 @@ Expected:
 Run:
 
 ```powershell
-Get-ChildItem -Recurse notion-clone\state
+Get-ChildItem -Recurse CodeNest\state
 ```
 
 Expected:
