@@ -15,6 +15,11 @@ describe("pages", () => {
         },
       ],
     });
+
+    const clonedPages = getInitialPages();
+
+    expect(clonedPages[0]).not.toBe(initialPages[0]);
+    expect(clonedPages[0]?.blocks).not.toBe(initialPages[0]?.blocks);
   });
 
   it("새 페이지를 만들면 목록 맨 앞에 추가된다", () => {
@@ -23,8 +28,10 @@ describe("pages", () => {
 
     expect(nextPages).toHaveLength(initialPages.length + 1);
     expect(nextPages[0]).toMatchObject({
-      id: "page-3",
       title: "제목 없음",
+    });
+    expect(nextPages[0].id).toMatch(/^page-/);
+    expect(nextPages[0]).toMatchObject({
       blocks: [
         {
           type: "text",

@@ -163,4 +163,48 @@ describe("PageWorkspace", () => {
     expect(preview).not.toBeNull();
     expect(within(preview as HTMLElement).getByText("할 일")).toBeInTheDocument();
   });
+
+  it("코드 블록의 언어와 내용을 수정한다", () => {
+    renderWorkspace([
+      {
+        id: "page-1",
+        title: "시작하기",
+        blocks: [
+          {
+            id: "block-1",
+            type: "code",
+            text: "console.log('안녕');",
+            language: "ts",
+          },
+        ],
+        updatedAt: "오늘",
+      },
+    ]);
+
+    fireEvent.change(screen.getByLabelText("코드 언어 1"), {
+      target: { value: "tsx" },
+    });
+
+    fireEvent.change(screen.getByLabelText("코드 블록 1"), {
+      target: { value: "console.log('변경');" },
+    });
+
+    const preview = screen.getByText("실시간 미리보기").closest(".page-editor__preview");
+    expect(preview).not.toBeNull();
+    expect(within(preview as HTMLElement).getByText("tsx")).toBeInTheDocument();
+    expect(within(preview as HTMLElement).getByText("console.log('변경');")).toBeInTheDocument();
+  });
+
+  it("선택된 페이지가 없으면 빈 상태를 보여준다", () => {
+    render(createElement(PageWorkspace, {
+      pages: [],
+      selectedPageId: "",
+      onCreatePage: vi.fn(),
+      onSelectPage: vi.fn(),
+      onUpdatePage: vi.fn(),
+    }));
+
+    expect(screen.getByText("선택된 페이지가 없습니다")).toBeInTheDocument();
+    expect(screen.getByText("왼쪽 목록에서 페이지를 선택하거나 새 페이지를 만들어 시작하세요.")).toBeInTheDocument();
+  });
 });
