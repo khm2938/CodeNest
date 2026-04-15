@@ -195,6 +195,95 @@ describe("PageWorkspace", () => {
     expect(within(preview as HTMLElement).getByText("console.log('변경');")).toBeInTheDocument();
   });
 
+  it("블록을 아래로 이동하면 순서가 바뀐다", () => {
+    renderWorkspace([
+      {
+        id: "page-1",
+        title: "시작하기",
+        blocks: [
+          {
+            id: "block-1",
+            type: "text",
+            text: "첫 번째",
+          },
+          {
+            id: "block-2",
+            type: "text",
+            text: "두 번째",
+          },
+          {
+            id: "block-3",
+            type: "text",
+            text: "세 번째",
+          },
+        ],
+        updatedAt: "오늘",
+      },
+    ]);
+
+    fireEvent.click(screen.getByRole("button", { name: "블록 1 아래로 이동" }));
+
+    expect((screen.getByLabelText("텍스트 블록 1") as HTMLTextAreaElement).value).toBe("두 번째");
+    expect((screen.getByLabelText("텍스트 블록 2") as HTMLTextAreaElement).value).toBe("첫 번째");
+
+    const preview = screen.getByText("실시간 미리보기").closest(".page-editor__preview");
+    expect(preview).not.toBeNull();
+    const previewBlockTitles = within(preview as HTMLElement).getAllByText(/첫 번째|두 번째|세 번째/);
+    expect(previewBlockTitles.map((node) => node.textContent)).toEqual(["두 번째", "첫 번째", "세 번째"]);
+  });
+
+  it("블록을 위로 이동하면 순서가 바뀐다", () => {
+    renderWorkspace([
+      {
+        id: "page-1",
+        title: "시작하기",
+        blocks: [
+          {
+            id: "block-1",
+            type: "text",
+            text: "첫 번째",
+          },
+          {
+            id: "block-2",
+            type: "text",
+            text: "두 번째",
+          },
+        ],
+        updatedAt: "오늘",
+      },
+    ]);
+
+    fireEvent.click(screen.getByRole("button", { name: "블록 2 위로 이동" }));
+
+    expect((screen.getByLabelText("텍스트 블록 1") as HTMLTextAreaElement).value).toBe("두 번째");
+    expect((screen.getByLabelText("텍스트 블록 2") as HTMLTextAreaElement).value).toBe("첫 번째");
+  });
+
+  it("첫 블록 위로와 마지막 블록 아래로 이동은 비활성화된다", () => {
+    renderWorkspace([
+      {
+        id: "page-1",
+        title: "시작하기",
+        blocks: [
+          {
+            id: "block-1",
+            type: "text",
+            text: "첫 번째",
+          },
+          {
+            id: "block-2",
+            type: "text",
+            text: "두 번째",
+          },
+        ],
+        updatedAt: "오늘",
+      },
+    ]);
+
+    expect(screen.getByRole("button", { name: "블록 1 위로 이동" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "블록 2 아래로 이동" })).toBeDisabled();
+  });
+
   it("선택된 페이지가 없으면 빈 상태를 보여준다", () => {
     render(createElement(PageWorkspace, {
       pages: [],

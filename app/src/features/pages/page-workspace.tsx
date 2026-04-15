@@ -20,6 +20,20 @@ function updateBlockAtIndex(blocks: Block[], index: number, nextBlock: Block): B
   return blocks.map((block, currentIndex) => (currentIndex === index ? nextBlock : block));
 }
 
+function moveBlockAtIndex(blocks: Block[], index: number, direction: "up" | "down"): Block[] {
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+
+  if (targetIndex < 0 || targetIndex >= blocks.length) {
+    return blocks;
+  }
+
+  const nextBlocks = [...blocks];
+  const [movingBlock] = nextBlocks.splice(index, 1);
+  nextBlocks.splice(targetIndex, 0, movingBlock);
+
+  return nextBlocks;
+}
+
 function getBlockPreview(block: Block, index: number) {
   const blockNumber = index + 1;
 
@@ -67,6 +81,10 @@ function getBlockEditor(
   index: number,
   onChange: (nextBlock: Block) => void,
   onDelete: () => void,
+  onMoveUp: () => void,
+  onMoveDown: () => void,
+  canMoveUp: boolean,
+  canMoveDown: boolean,
 ) {
   const blockNumber = index + 1;
   const blockHeader =
@@ -85,9 +103,27 @@ function getBlockEditor(
           <p className="page-block-editor__kicker">{blockHeader}</p>
           <h4>{block.type === "heading" ? "제목" : block.type === "checklist" ? "할 일" : block.type === "code" ? "코드" : "본문"}</h4>
         </div>
-        <button type="button" onClick={onDelete}>
-          블록 삭제
-        </button>
+        <div className="page-block-editor__actions">
+          <button
+            type="button"
+            aria-label={`블록 ${blockNumber} 위로 이동`}
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+          >
+            위로
+          </button>
+          <button
+            type="button"
+            aria-label={`블록 ${blockNumber} 아래로 이동`}
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+          >
+            아래로
+          </button>
+          <button type="button" onClick={onDelete}>
+            블록 삭제
+          </button>
+        </div>
       </div>
 
       {block.type === "heading" ? (
@@ -243,6 +279,16 @@ export function PageWorkspace({
     });
   };
 
+  const moveBlock = (index: number, direction: "up" | "down") => {
+    if (!currentPage) {
+      return;
+    }
+
+    updateCurrentPage({
+      blocks: moveBlockAtIndex(currentPage.blocks, index, direction),
+    });
+  };
+
   return (
     <section className="page-workspace">
       <div className="page-workspace__toolbar">
@@ -317,6 +363,10 @@ export function PageWorkspace({
                         index,
                         (nextBlock) => changeBlock(index, nextBlock),
                         () => deleteBlock(index),
+                        () => moveBlock(index, "up"),
+                        () => moveBlock(index, "down"),
+                        index > 0,
+                        index < currentPage.blocks.length - 1,
                       ),
                     )
                   ) : (
