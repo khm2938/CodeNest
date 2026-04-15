@@ -10,6 +10,7 @@ import { createPage, updatePage, type PageItem } from "./pages";
 function renderWorkspace(initialPages: PageItem[]) {
   const onCreatePage = vi.fn();
   const onSelectPage = vi.fn();
+  const onDeletePage = vi.fn();
   const onUpdatePage = vi.fn();
 
   function Harness() {
@@ -31,6 +32,9 @@ function renderWorkspace(initialPages: PageItem[]) {
         onSelectPage(pageId);
         setSelectedPageId(pageId);
       },
+      onDeletePage: (pageId) => {
+        onDeletePage(pageId);
+      },
       onUpdatePage: (pageId, updates) => {
         onUpdatePage(pageId, updates);
         setPages((currentPages) => updatePage(currentPages, pageId, updates));
@@ -43,13 +47,14 @@ function renderWorkspace(initialPages: PageItem[]) {
   return {
     onCreatePage,
     onSelectPage,
+    onDeletePage,
     onUpdatePage,
   };
 }
 
 describe("PageWorkspace", () => {
   it("선택된 페이지의 텍스트 블록과 제목을 바로 수정한다", () => {
-    const { onCreatePage, onSelectPage, onUpdatePage } = renderWorkspace([
+    const { onCreatePage, onSelectPage, onDeletePage, onUpdatePage } = renderWorkspace([
       {
         id: "page-1",
         title: "시작하기",
@@ -104,7 +109,7 @@ describe("PageWorkspace", () => {
   });
 
   it("체크리스트를 토글하고 새 블록을 추가한 뒤 삭제한다", () => {
-    const { onCreatePage, onSelectPage, onUpdatePage } = renderWorkspace([
+    const { onCreatePage, onSelectPage, onDeletePage, onUpdatePage } = renderWorkspace([
       {
         id: "page-1",
         title: "시작하기",
@@ -162,6 +167,27 @@ describe("PageWorkspace", () => {
     const preview = screen.getByText("실시간 미리보기").closest(".page-editor__preview");
     expect(preview).not.toBeNull();
     expect(within(preview as HTMLElement).getByText("할 일")).toBeInTheDocument();
+  });
+
+  it("현재 페이지 삭제 버튼이 현재 페이지 ID를 전달한다", () => {
+    const { onDeletePage } = renderWorkspace([
+      {
+        id: "page-1",
+        title: "시작하기",
+        blocks: [
+          {
+            id: "block-1",
+            type: "text",
+            text: "첫 내용",
+          },
+        ],
+        updatedAt: "오늘",
+      },
+    ]);
+
+    fireEvent.click(screen.getByRole("button", { name: "페이지 삭제" }));
+
+    expect(onDeletePage).toHaveBeenCalledWith("page-1");
   });
 
   it("코드 블록의 언어와 내용을 수정한다", () => {
@@ -290,6 +316,7 @@ describe("PageWorkspace", () => {
       selectedPageId: "",
       onCreatePage: vi.fn(),
       onSelectPage: vi.fn(),
+      onDeletePage: vi.fn(),
       onUpdatePage: vi.fn(),
     }));
 

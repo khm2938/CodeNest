@@ -90,6 +90,32 @@ export default function HomePage() {
     return nextPages;
   };
 
+  const handleDeletePage = async (pageId: string) => {
+    const currentIndex = pages.findIndex((page) => page.id === pageId);
+    const nextSelectedPageId =
+      pages.filter((page) => page.id !== pageId)[currentIndex]?.id ??
+      pages.filter((page) => page.id !== pageId)[currentIndex - 1]?.id ??
+      "";
+
+    const shouldDelete = window.confirm("이 페이지를 삭제할까요?");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    const removed = await repository.deletePage(pageId);
+
+    if (!removed) {
+      return;
+    }
+
+    const nextPages = await syncPages();
+    setSelectedPageId(
+      nextPages.some((page) => page.id === nextSelectedPageId) ? nextSelectedPageId : nextPages[0]?.id ?? "",
+    );
+    setActiveSectionId("pages");
+  };
+
   const handleNavigate = (sectionId: SidebarSectionId) => {
     setActiveSectionId(sectionId);
 
@@ -137,6 +163,7 @@ export default function HomePage() {
                 pages={pages}
                 selectedPageId={selectedPageId}
                 onCreatePage={handleCreatePage}
+                onDeletePage={handleDeletePage}
                 onSelectPage={(pageId) => {
                   setSelectedPageId(pageId);
                   setActiveSectionId("pages");

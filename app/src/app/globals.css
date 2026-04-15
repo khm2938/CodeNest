@@ -450,6 +450,11 @@ code {
   filter: brightness(1.02);
 }
 
+.page-workspace__button--danger {
+  background: linear-gradient(135deg, #8d4a4a, #6f2f2f);
+  box-shadow: 0 14px 30px rgba(111, 47, 47, 0.28);
+}
+
 .page-workspace__layout {
   display: grid;
   grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr);
@@ -466,8 +471,10 @@ code {
 }
 
 .page-editor__header {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .page-editor__meta {

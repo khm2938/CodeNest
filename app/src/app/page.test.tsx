@@ -1,11 +1,16 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
+import { beforeEach } from "vitest";
 import { createElement } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import HomePage from "./page";
 import { resolveActiveSectionId } from "./section-navigation";
+
+beforeEach(() => {
+  localStorage.clear();
+});
 
 describe("HomePage", () => {
   it("빠른 이동 버튼을 누르면 대상 섹션으로 스크롤한다", () => {
@@ -22,6 +27,20 @@ describe("HomePage", () => {
 
     expect(getElementByIdSpy).toHaveBeenCalledWith("pages");
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+  });
+
+  it("현재 페이지를 삭제하면 다음 페이지가 선택된다", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    render(createElement(HomePage));
+
+    await screen.findByDisplayValue("시작하기");
+
+    fireEvent.click(screen.getByRole("button", { name: "페이지 삭제" }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("페이지 제목")).toHaveValue("프로젝트 노트");
+    });
   });
 });
 

@@ -5,6 +5,7 @@ type PageWorkspaceProps = {
   selectedPageId: string;
   onCreatePage: () => void;
   onSelectPage: (pageId: string) => void;
+  onDeletePage: (pageId: string) => void;
   onUpdatePage: (pageId: string, updates: Partial<Pick<PageItem, "title" | "blocks">>) => void;
 };
 
@@ -237,6 +238,7 @@ export function PageWorkspace({
   selectedPageId,
   onCreatePage,
   onSelectPage,
+  onDeletePage,
   onUpdatePage,
 }: PageWorkspaceProps) {
   const currentPage = pages.find((page) => page.id === selectedPageId);
@@ -326,8 +328,17 @@ export function PageWorkspace({
           {currentPage ? (
             <>
               <div className="page-editor__header">
-                <p className="page-preview__kicker">편집 중인 페이지</p>
-                <p className="page-editor__meta">마지막 수정: {currentPage.updatedAt}</p>
+                <div>
+                  <p className="page-preview__kicker">편집 중인 페이지</p>
+                  <p className="page-editor__meta">마지막 수정: {currentPage.updatedAt}</p>
+                </div>
+                <button
+                  type="button"
+                  className="page-workspace__button page-workspace__button--danger"
+                  onClick={() => onDeletePage(currentPage.id)}
+                >
+                  페이지 삭제
+                </button>
               </div>
 
               <label className="page-editor__field">
