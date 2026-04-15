@@ -5,8 +5,9 @@ import { AppShell } from "@/components/app-shell";
 import { AppSidebar, type SidebarSectionId } from "@/components/app-sidebar";
 import { SectionCard } from "@/components/section-card";
 import { PageWorkspace } from "@/features/pages/page-workspace";
-import { createPage, getInitialPages, updatePage, type PageItem } from "@/features/pages/pages";
+import { getInitialPages, type PageItem } from "@/features/pages/pages";
 import { promptGroups } from "@/features/prompt-library/prompt-library";
+import { createInMemoryPageRepository, type PageRepository } from "@/features/storage/page-repository";
 import { resolveActiveSectionId } from "./section-navigation";
 
 const settingsItems = [
@@ -16,7 +17,9 @@ const settingsItems = [
 ];
 
 export default function HomePage() {
-  const [pages, setPages] = useState<PageItem[]>(() => getInitialPages());
+  const [initialPages] = useState<PageItem[]>(() => getInitialPages());
+  const [repository] = useState<PageRepository>(() => createInMemoryPageRepository(initialPages));
+  const [pages, setPages] = useState<PageItem[]>(() => initialPages);
   const [selectedPageId, setSelectedPageId] = useState<string>(pages[0]?.id ?? "");
   const [activeSectionId, setActiveSectionId] = useState<SidebarSectionId>("dashboard");
 
@@ -44,13 +47,20 @@ export default function HomePage() {
     };
   }, []);
 
-  const handleCreatePage = () => {
-    setPages((currentPages) => {
-      const nextPages = createPage(currentPages);
-      setSelectedPageId(nextPages[0]?.id ?? "");
-      setActiveSectionId("pages");
-      return nextPages;
-    });
+  const syncPages = async () => {
+    const nextPages = await repository.listPages();
+    setPages(nextPages);
+    return nextPages;
+  };
+
+  const handleCreatePage = async () => {
+    const createdPage = await repository.createPage();
+    const nextPages = await syncPages();
+
+    setSelectedPageId(createdPage.id);
+    setActiveSectionId("pages");
+
+    return nextPages;
   };
 
   const handleNavigate = (sectionId: SidebarSectionId) => {
@@ -104,8 +114,9 @@ export default function HomePage() {
                   setSelectedPageId(pageId);
                   setActiveSectionId("pages");
                 }}
-                onUpdatePage={(pageId, updates) => {
-                  setPages((currentPages) => updatePage(currentPages, pageId, updates));
+                onUpdatePage={async (pageId, updates) => {
+                  await repository.updatePage(pageId, updates);
+                  await syncPages();
                   setActiveSectionId("pages");
                 }}
               />
