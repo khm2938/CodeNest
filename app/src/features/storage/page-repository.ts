@@ -1,4 +1,7 @@
 import { getInitialPages, type Block, type PageItem } from "../pages/pages";
+import { cloneBlock, clonePage, clonePages } from "./page-clone";
+import { createDefaultPage } from "./page-factory";
+import { reorderBlocksInPage } from "./page-order";
 
 export type CreatePageInput = {
   title?: string;
@@ -16,41 +19,7 @@ export interface PageRepository {
   reorderBlocks(pageId: string, blockIds: string[]): Promise<PageItem | null>;
 }
 
-function cloneBlock(block: Block): Block {
-  return { ...block };
-}
-
-function clonePage(page: PageItem): PageItem {
-  return {
-    ...page,
-    blocks: page.blocks.map(cloneBlock),
-  };
-}
-
-function clonePages(pages: PageItem[]): PageItem[] {
-  return pages.map(clonePage);
-}
-
-function createDefaultPage(): PageItem {
-  return {
-    id: `page-${crypto.randomUUID()}`,
-    title: "제목 없음",
-    blocks: [
-      {
-        id: `block-${crypto.randomUUID()}`,
-        type: "text",
-        text: "",
-      },
-    ],
-    updatedAt: "방금 전",
-  };
-}
-
-function updatePageInMemory(
-  pages: PageItem[],
-  pageId: string,
-  updates: UpdatePageInput,
-): PageItem[] {
+function updatePageInMemory(pages: PageItem[], pageId: string, updates: UpdatePageInput): PageItem[] {
   return pages.map((page) => {
     if (page.id !== pageId) {
       return page;
@@ -63,35 +32,6 @@ function updatePageInMemory(
       blocks: updates.blocks ? updates.blocks.map(cloneBlock) : page.blocks.map(cloneBlock),
     };
   });
-}
-
-function reorderBlocksInPage(page: PageItem, blockIds: string[]): PageItem {
-  const blockById = new Map(page.blocks.map((block) => [block.id, cloneBlock(block)]));
-  const reorderedBlocks: Block[] = [];
-
-  for (const blockId of blockIds) {
-    const block = blockById.get(blockId);
-
-    if (!block) {
-      continue;
-    }
-
-    reorderedBlocks.push(block);
-    blockById.delete(blockId);
-  }
-
-  for (const block of page.blocks) {
-    if (blockById.has(block.id)) {
-      reorderedBlocks.push(cloneBlock(block));
-      blockById.delete(block.id);
-    }
-  }
-
-  return {
-    ...page,
-    blocks: reorderedBlocks,
-    updatedAt: "방금 전",
-  };
 }
 
 export function createInMemoryPageRepository(initialPages: PageItem[] = getInitialPages()): PageRepository {
