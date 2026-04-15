@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Page {
+  id            String   @id
+  title         String
+  sortOrder     Int      @default(0) @map("sort_order")
+  schemaVersion Int      @default(1) @map("schema_version")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+  blocks        Block[]
+
+  @@map("pages")
+}
+
+model Block {
+  id            String   @id
+  pageId        String   @map("page_id")
+  type          String
+  text          String
+  checked       Boolean  @default(false)
+  language      String?
+  position      Int
+  schemaVersion Int      @default(1) @map("schema_version")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+  page          Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, position])
+  @@index([pageId, position])
+  @@map("blocks")
+}

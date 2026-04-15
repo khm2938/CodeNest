@@ -11,6 +11,8 @@ build/
 .env
 .env.*
 !.env.example
+app/prisma/*.db
+app/prisma/*.db-journal
 .DS_Store
 Thumbs.db
 .worktrees/
