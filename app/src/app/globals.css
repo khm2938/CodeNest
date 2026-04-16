@@ -398,6 +398,9 @@ code {
 }
 
 .page-workspace {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
   padding: 24px;
   border-radius: 28px;
   background: var(--surface);
@@ -451,6 +454,8 @@ code {
 }
 
 .page-workspace__button--danger {
+  position: relative;
+  z-index: 3;
   background: linear-gradient(135deg, #8d4a4a, #6f2f2f);
   box-shadow: 0 14px 30px rgba(111, 47, 47, 0.28);
 }
@@ -462,6 +467,7 @@ code {
 }
 
 .page-editor {
+  position: relative;
   display: grid;
   gap: 16px;
   padding: 20px;
@@ -471,6 +477,8 @@ code {
 }
 
 .page-editor__header {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
