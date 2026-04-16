@@ -3,4 +3,5 @@
 - 제품: 노션 스타일 생산성 앱
 - 범위: 페이지 블록 편집과 SQLite/Prisma 기반 서버 저장 연결 완료
 - 상태: 화면은 `PageRepository`를 통해 페이지를 읽고 쓰고, 서버 API는 Prisma 저장소를 통해 페이지와 블록을 SQLite에 저장함
+- 운영: 컨텍스트 기준점은 `state/context-checklist.md`를 따라 관리
 - 다음: DB 저장소를 기준으로 API/클라이언트 전환 전략 다듬기
