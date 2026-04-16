@@ -23,6 +23,7 @@ export default function HomePage() {
   const [pages, setPages] = useState<PageItem[]>(() => initialPages);
   const [selectedPageId, setSelectedPageId] = useState<string>(pages[0]?.id ?? "");
   const [activeSectionId, setActiveSectionId] = useState<SidebarSectionId>("dashboard");
+  const [isCreatingPage, setIsCreatingPage] = useState(false);
 
   useEffect(() => {
     const loadPages = async () => {
@@ -81,13 +82,25 @@ export default function HomePage() {
   };
 
   const handleCreatePage = async () => {
-    const createdPage = await repository.createPage();
-    const nextPages = await syncPages();
+    setIsCreatingPage(true);
 
-    setSelectedPageId(createdPage.id);
-    setActiveSectionId("pages");
+    try {
+      const createdPage = await repository.createPage();
 
-    return nextPages;
+      setPages((currentPages) => [
+        createdPage,
+        ...currentPages.filter((page) => page.id !== createdPage.id),
+      ]);
+
+      setSelectedPageId(createdPage.id);
+      setActiveSectionId("pages");
+
+      await syncPages();
+
+      return createdPage;
+    } finally {
+      setIsCreatingPage(false);
+    }
   };
 
   const handleDeletePage = async (pageId: string) => {
@@ -133,6 +146,7 @@ export default function HomePage() {
           onSelectPage={setSelectedPageId}
           onNavigate={handleNavigate}
           activeSectionId={activeSectionId}
+          isCreatingPage={isCreatingPage}
         />
 
         <div className="app-layout__content">
@@ -164,6 +178,7 @@ export default function HomePage() {
                 selectedPageId={selectedPageId}
                 onCreatePage={handleCreatePage}
                 onDeletePage={handleDeletePage}
+                isCreatingPage={isCreatingPage}
                 onSelectPage={(pageId) => {
                   setSelectedPageId(pageId);
                   setActiveSectionId("pages");

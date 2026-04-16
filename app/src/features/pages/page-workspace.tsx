@@ -7,6 +7,7 @@ type PageWorkspaceProps = {
   onSelectPage: (pageId: string) => void;
   onDeletePage: (pageId: string) => void;
   onUpdatePage: (pageId: string, updates: Partial<Pick<PageItem, "title" | "blocks">>) => void;
+  isCreatingPage?: boolean;
 };
 
 function createTextBlock(): Block {
@@ -86,6 +87,7 @@ function getBlockEditor(
   onMoveDown: () => void,
   canMoveUp: boolean,
   canMoveDown: boolean,
+  isCreatingPage: boolean,
 ) {
   const blockNumber = index + 1;
   const blockHeader =
@@ -109,7 +111,7 @@ function getBlockEditor(
             type="button"
             aria-label={`블록 ${blockNumber} 위로 이동`}
             onClick={onMoveUp}
-            disabled={!canMoveUp}
+            disabled={!canMoveUp || isCreatingPage}
           >
             위로
           </button>
@@ -117,11 +119,11 @@ function getBlockEditor(
             type="button"
             aria-label={`블록 ${blockNumber} 아래로 이동`}
             onClick={onMoveDown}
-            disabled={!canMoveDown}
+            disabled={!canMoveDown || isCreatingPage}
           >
             아래로
           </button>
-          <button type="button" onClick={onDelete}>
+          <button type="button" onClick={onDelete} disabled={isCreatingPage}>
             블록 삭제
           </button>
         </div>
@@ -134,6 +136,7 @@ function getBlockEditor(
             type="text"
             aria-label={`제목 블록 ${blockNumber}`}
             value={block.text}
+            disabled={isCreatingPage}
             onChange={(event) =>
               onChange({
                 ...block,
@@ -150,6 +153,7 @@ function getBlockEditor(
           <textarea
             aria-label={`텍스트 블록 ${blockNumber}`}
             value={block.text}
+            disabled={isCreatingPage}
             onChange={(event) =>
               onChange({
                 ...block,
@@ -168,6 +172,7 @@ function getBlockEditor(
               type="checkbox"
               aria-label="체크리스트 완료"
               checked={Boolean(block.checked)}
+              disabled={isCreatingPage}
               onChange={(event) =>
                 onChange({
                   ...block,
@@ -184,6 +189,7 @@ function getBlockEditor(
               type="text"
               aria-label={`체크리스트 블록 ${blockNumber}`}
               value={block.text}
+              disabled={isCreatingPage}
               onChange={(event) =>
                 onChange({
                   ...block,
@@ -204,6 +210,7 @@ function getBlockEditor(
               aria-label={`코드 언어 ${blockNumber}`}
               value={block.language ?? ""}
               placeholder="ts"
+              disabled={isCreatingPage}
               onChange={(event) =>
                 onChange({
                   ...block,
@@ -218,6 +225,7 @@ function getBlockEditor(
             <textarea
               aria-label={`코드 블록 ${blockNumber}`}
               value={block.text}
+              disabled={isCreatingPage}
               onChange={(event) =>
                 onChange({
                   ...block,
@@ -240,6 +248,7 @@ export function PageWorkspace({
   onSelectPage,
   onDeletePage,
   onUpdatePage,
+  isCreatingPage = false,
 }: PageWorkspaceProps) {
   const currentPage = pages.find((page) => page.id === selectedPageId);
 
@@ -301,8 +310,8 @@ export function PageWorkspace({
             페이지 목록에서 고르고, 오른쪽에서 바로 제목과 블록을 수정합니다.
           </p>
         </div>
-        <button type="button" className="page-workspace__button" onClick={onCreatePage}>
-          새 페이지
+        <button type="button" className="page-workspace__button" onClick={onCreatePage} disabled={isCreatingPage}>
+          {isCreatingPage ? "새 페이지 준비 중" : "새 페이지"}
         </button>
       </div>
 
@@ -316,6 +325,7 @@ export function PageWorkspace({
                 type="button"
                 className={`page-list__item${isSelected ? " page-list__item--active" : ""}`}
                 onClick={() => onSelectPage(page.id)}
+                disabled={isCreatingPage}
               >
                 <span className="page-list__title">{page.title}</span>
                 <span className="page-list__meta">{page.updatedAt}</span>
@@ -336,6 +346,7 @@ export function PageWorkspace({
                   type="button"
                   className="page-workspace__button page-workspace__button--danger"
                   onClick={() => onDeletePage(currentPage.id)}
+                  disabled={isCreatingPage}
                 >
                   페이지 삭제
                 </button>
@@ -346,6 +357,7 @@ export function PageWorkspace({
                 <input
                   type="text"
                   value={currentPage.title}
+                  disabled={isCreatingPage}
                   onChange={(event) =>
                     updateCurrentPage({
                       title: event.target.value,
@@ -361,7 +373,7 @@ export function PageWorkspace({
                     <p className="page-preview__kicker">블록</p>
                     <h3>본문 블록</h3>
                   </div>
-                  <button type="button" className="page-workspace__button" onClick={addTextBlock}>
+                  <button type="button" className="page-workspace__button" onClick={addTextBlock} disabled={isCreatingPage}>
                     텍스트 블록 추가
                   </button>
                 </div>
@@ -378,6 +390,7 @@ export function PageWorkspace({
                         () => moveBlock(index, "down"),
                         index > 0,
                         index < currentPage.blocks.length - 1,
+                        isCreatingPage,
                       ),
                     )
                   ) : (

@@ -9,6 +9,7 @@ type AppSidebarProps = {
   onSelectPage: (pageId: string) => void;
   onNavigate: (sectionId: SidebarSectionId) => void;
   activeSectionId?: SidebarSectionId;
+  isCreatingPage?: boolean;
 };
 
 const quickLinks: Array<{ label: string; targetId: SidebarSectionId }> = [
@@ -25,6 +26,7 @@ export function AppSidebar({
   onSelectPage,
   onNavigate,
   activeSectionId,
+  isCreatingPage = false,
 }: AppSidebarProps) {
   return (
     <aside className="app-sidebar" aria-label="앱 사이드바">
@@ -38,8 +40,8 @@ export function AppSidebar({
         </div>
       </div>
 
-      <button type="button" className="app-sidebar__button" onClick={onCreatePage}>
-        새 페이지
+      <button type="button" className="app-sidebar__button" onClick={onCreatePage} disabled={isCreatingPage}>
+        {isCreatingPage ? "새 페이지 준비 중" : "새 페이지"}
       </button>
 
       <nav className="app-sidebar__nav" aria-label="빠른 이동">
@@ -72,11 +74,12 @@ export function AppSidebar({
             return (
               <button
                 key={page.id}
-                type="button"
-                className={`app-sidebar__page-item${isSelected ? " app-sidebar__page-item--active" : ""}`}
-                onClick={() => onSelectPage(page.id)}
-                aria-label={`${page.title} ${page.updatedAt}`}
-              >
+              type="button"
+              className={`app-sidebar__page-item${isSelected ? " app-sidebar__page-item--active" : ""}`}
+              onClick={() => onSelectPage(page.id)}
+              aria-label={`${page.title} ${page.updatedAt}`}
+              disabled={isCreatingPage}
+            >
                 <span className="app-sidebar__page-title">{page.title}</span>
                 <span className="app-sidebar__page-meta">{page.updatedAt}</span>
               </button>
